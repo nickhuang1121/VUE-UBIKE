@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://unpkg.com/vue@next"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;300;400;500;700;900&family=Noto+Serif+TC:wght@700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .list {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 0 auto;
+            width: 1500px;
+            max-width: 80%;
+            list-style: none;
+        }
+
+        .list li {
+            padding: 20px;
+            background: white;
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+        }
+
+        .list li.noAct {
+            opacity: 0.2;
+        }
+
+        h3 {
+            font: 700 20px/1.6 "Noto Sans TC";
+            color: black;
+        }
+
+        p {
+            margin-bottom: 5px;
+            font: 300 15px/1.6 "Noto Sans TC";
+            letter-spacing: 2px;
+            color: black;
+        }
+
+        p small {
+            font-size: 0.7em;
+            color: #757575;
+        }
+
+        .googleMapBtn {
+            display: block;
+            margin: 0 auto;
+            padding: 5px 0;
+            font: 300 15px/1.6 "Noto Sans TC";
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 99em;
+            background: darkcyan;
+        }
+
+        .googleMapBtn.noAct {
+            background: lightcoral;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+            padding: 10px 0;
+            background: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        nav a {
+            display: inline-block;
+            margin: 0 5px;
+            padding: 5px 10px;
+            font: 300 15px/1.6 "Noto Sans TC";
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 99em;
+            background: darkcyan;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+        <nav>
+            <a href="javascript:void(0)" v-on:click="changeShowReset">全部</a>
+            <a v-for="i in sareaArray" href="javascript:void(0)" v-on:click="changeShow">
+                {{i}}
+            </a>
+        </nav>
+        <ul class="list">
+            <template v-for="i in data">
+                <li v-if="show == i.sarea || show == 'all'">
+                    <p><small>{{i.sarea}}</small></p>
+                    <h3>{{i.sna}}</h3>
+                    <p><small>編號：{{i.sno}}</small></p>
+                    <p>地址：{{i.sna}}</p>
+                    <p>目前可租借數量：<span>{{i.sbi}}</span>/輛</p>
+                    <p>此站總數量：<span>{{i.tot}}</span>/輛</p>
+                    <p><small>更新時間：{{i.updateTime}}</small></p>
+                    <a class="googleMapBtn" v-bind:class="{noAct:i.act === '0'}" v-bind:href="googleMap(i.lat,i.lng)"
+                        target="_blank">
+                        <span v-if="i.act === '1'">
+                            檢視地圖
+                        </span>
+                        <span v-else>
+                            此站維護中
+                        </span>
+                    </a>
+
+
+                </li>
+            </template>
+        </ul>
+    </div>
+
+    <script>
+        let jsonData;
+
+        const app = {
+            data() {
+                return {
+                    data: jsonData,
+                    sareaArray: [],
+                    show: "all"
+                }
+            },
+            created() {
+                this.data.forEach(i => {
+                    if (this.sareaArray.indexOf(i.sarea) === -1) {
+                        this.sareaArray.push(i.sarea)
+                    }
+                });
+            },
+            methods: {
+                changeShow(e) {
+                    this.show = e.target.textContent;
+                },
+                changeShowReset() {
+                    this.show = "all";
+                },
+                googleMap(lat, lng) {
+                    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+                }
+
+            },
+        }
+
+
+
+        let link = "https://tcgbusfs.blob.core.windows.net/dotapp/youbike/v2/youbike_immediate.json";
+
+        fetch(link)
+            .then(res => res.json())
+            .then(json => {
+                console.log(json);
+                jsonData = json;
+
+                Vue.createApp(app).mount('#app');
+            })
+
+        /*tot: 場站總停車格、sbi: 場站目前車輛數量、bemp: 空位數量、act: 全站禁用狀態(0:禁用、1:啟用)。*/
+    </script>
+</body>
+
+</html>
